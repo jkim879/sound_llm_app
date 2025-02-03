@@ -3,7 +3,7 @@ import base64
 import matplotlib.pyplot as plt
 import streamlit as st
 import streamlit.components.v1 as components
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
 from openai import OpenAI
 import matplotlib.font_manager as fm
 from audio_recorder_streamlit import audio_recorder
