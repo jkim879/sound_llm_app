@@ -19,7 +19,7 @@ st.set_page_config(
 
 # Load environment variables and initialize OpenAI client
 load_dotenv()
-client = OpenAI(api_key = 'sk-proj-LwYqwG06ZBsEKGmZ4VQ7T3BlbkFJHb3XAeAsVXB71uEIMrWY')
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 if not client.api_key:
     st.error("API 키가 설정되지 않았습니다")
