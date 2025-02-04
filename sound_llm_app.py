@@ -49,7 +49,7 @@ with st.sidebar:
     )
     temp_summary_length = st.slider(
         '요약 길이 조정',
-        min_value=10, max_value=500, step=10,
+        min_value=10, max_value=1000, step=10,
         value=st.session_state['settings']['summary_length']
     )
 
@@ -82,7 +82,7 @@ def extract_keywords(text, model_option):
             {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'과 고객 간의 대화 내용입니다.  전체 대화를 고려하여 이 대화의 가장 핵심 키워드 추출. 답변은 부가 설명 없이 핵심 키워드만 추출."},
             {"role": "user", "content": text}
         ],
-        max_tokens=100
+        max_tokens=1000
     )
     return response.choices[0].message.content.strip()
 
@@ -98,7 +98,7 @@ def analyze_emotion_over_time(text, model_option):
                     {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'과 고객 간의 대화 내용입니다.  전체상황을 고려하여 고객의 감정만 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
                     {"role": "user", "content": chunk}
                 ],
-                max_tokens=100
+                max_tokens=1000
             )
             result = response.choices[0].message.content.strip().split(';')
             if len(result) == 2:
@@ -117,7 +117,7 @@ def classify_topics(text, model_option):
             {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'과 고객 간의 대화 내용입니다. 텍스트 주제 분류. 답변은 부가설명 없이 주제만 추출."},
             {"role": "user", "content": text}
         ],
-        max_tokens=100
+        max_tokens=1000
     )
     return response.choices[0].message.content.strip()
 
@@ -238,7 +238,7 @@ if uploaded_file:
                             {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
                             {"role": "user", "content": f"다음 내용은 기업신용평가회사 '이크레더블'과 고객 간의 대화 내용입니다. 다음 텍스트에서 고객의 감정만 전체 상황을 고려하여 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
                         ],
-                        max_tokens=100,
+                        max_tokens=1000,
                         temperature=0.5
                     )
                     st.session_state['emotion_result'] = text_response.choices[0].message.content.strip()
