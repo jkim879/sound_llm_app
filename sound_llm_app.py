@@ -32,9 +32,6 @@ if 'settings' not in st.session_state:
         'summary_type': '회의록',
         'summary_length': 300
     }
-# Initialize session state for transcribed text
-if 'transcribed_text' not in st.session_state:
-    st.session_state['transcribed_text'] = ""
 
 # Sidebar configuration
 with st.sidebar:
@@ -100,30 +97,6 @@ def classify_topics(text, model_option):
     )
     return response.choices[0].message.content.strip()
 
-def perform_emotion_analysis(text, model_option):
-    response = client.chat.completions.create(
-        model=model_option,
-        messages=[
-            {"role": "system", "content": "주어진 텍스트의 감정을 분석하고, 주요 감정과 그 강도를 한국어로 설명하세요. 구체적이고 상세한 분석을 제공하세요."},
-            {"role": "user", "content": text}
-        ],
-        max_tokens=300
-    )
-    return response.choices[0].message.content.strip()
-
-def perform_summary(text, summary_type, summary_length, model_option):
-    system_prompt = f"{summary_type} 유형의 요약을 수행하세요. 요약 길이는 약 {summary_length}자로 제한하세요."
-    
-    response = client.chat.completions.create(
-        model=model_option,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": text}
-        ],
-        max_tokens=summary_length
-    )
-    return response.choices[0].message.content.strip()
-
 if uploaded_file:
     try:
         audio_bytes = uploaded_file.read()
@@ -162,52 +135,26 @@ if uploaded_file:
         
         # Transcription
         with st.spinner("음성 변환 중..."):
-            uploaded_file.seek(0)  # Reset file pointer
             transcription = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=uploaded_file,
                 response_format="text"
             )
-            st.session_state['transcribed_text'] = transcription.strip()
+            transcribed_text = transcription.strip()
         
         # Display transcribed text
         st.markdown("<h3 style='text-align: left; font-size: 24px; font-weight: bold;'>텍스트 원문</h3>", unsafe_allow_html=True)
-        st.text_area("", value=st.session_state['transcribed_text'], height=200, key='original_text')
+        st.text_area("", value=transcribed_text, height=200)
 
         # Keyword extraction
         st.markdown("### 키워드 추출")
-        keywords = extract_keywords(st.session_state['transcribed_text'], st.session_state['settings']['model'])
+        keywords = extract_keywords(transcribed_text, st.session_state['settings']['model'])
         st.write(keywords)
 
         # Topic classification
         st.markdown("### 주제 분류")
-        topic = classify_topics(st.session_state['transcribed_text'], st.session_state['settings']['model'])
+        topic = classify_topics(transcribed_text, st.session_state['settings']['model'])
         st.write(topic)
-
-        # Emotion Analysis and Summary Buttons
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if st.button("감정 분석 실행"):
-                with st.spinner("감정 분석 중..."):
-                    emotion_analysis = perform_emotion_analysis(
-                        st.session_state['transcribed_text'], 
-                        st.session_state['settings']['model']
-                    )
-                    st.markdown("### 감정 분석 결과")
-                    st.write(emotion_analysis)
-        
-        with col2:
-            if st.button("요약 시작"):
-                with st.spinner("요약 생성 중..."):
-                    summary = perform_summary(
-                        st.session_state['transcribed_text'], 
-                        st.session_state['settings']['summary_type'],
-                        st.session_state['settings']['summary_length'],
-                        st.session_state['settings']['model']
-                    )
-                    st.markdown("### 요약 결과")
-                    st.write(summary)
 
     except Exception as e:
         st.error(f"파일 처리 실패: {str(e)}")
