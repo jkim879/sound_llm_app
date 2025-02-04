@@ -29,9 +29,12 @@ if not client.api_key:
 if 'settings' not in st.session_state:
     st.session_state['settings'] = {
         'model': 'gpt-4o-mini',
-        'summary_type': '일반 요약',
-        'summary_length': 1000
+        'summary_type': '회의록',
+        'summary_length': 300
     }
+# Initialize session state for transcribed text
+if 'transcribed_text' not in st.session_state:
+    st.session_state['transcribed_text'] = ""
 
 # Sidebar configuration
 with st.sidebar:
@@ -86,30 +89,6 @@ def extract_keywords(text, model_option):
     )
     return response.choices[0].message.content.strip()
 
-def analyze_emotion_over_time(text, model_option):
-    chunks = text.split(". ")
-    emotions = []
-    scores = []
-    for chunk in chunks:
-        if chunk.strip():
-            response = client.chat.completions.create(
-                model=model_option,
-                messages=[
-                    {"role": "system", "content": "텍스트의 감정을 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
-                    {"role": "user", "content": chunk}
-                ],
-                max_tokens=100
-            )
-            result = response.choices[0].message.content.strip().split(';')
-            if len(result) == 2:
-                emotions.append(result[0])
-                score = float(''.join(filter(lambda x: x.isdigit() or x in ['-', '.'], result[1])))
-                scores.append(max(min(score, 1.0), -1.0))
-            else:
-                emotions.append("중립")
-                scores.append(0.0)
-    return emotions, scores
-
 def classify_topics(text, model_option):
     response = client.chat.completions.create(
         model=model_option,
@@ -121,42 +100,29 @@ def classify_topics(text, model_option):
     )
     return response.choices[0].message.content.strip()
 
-# Custom button styles
-emotion_button_style = """
-    <style>
-    div.stButton > button:first-child {
-        background-color: #2196F3;
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 8px;
-        height: 50px;
-        width: 100%;
-    }
-    div.stButton > button:hover {
-        background-color: #1976D2;
-    }
-    </style>
-"""
+def perform_emotion_analysis(text, model_option):
+    response = client.chat.completions.create(
+        model=model_option,
+        messages=[
+            {"role": "system", "content": "주어진 텍스트의 감정을 분석하고, 주요 감정과 그 강도를 한국어로 설명하세요. 구체적이고 상세한 분석을 제공하세요."},
+            {"role": "user", "content": text}
+        ],
+        max_tokens=300
+    )
+    return response.choices[0].message.content.strip()
 
-summary_button_style = """
-    <style>
-    div.stButton > button:last-child {
-        background-color: #26A69A;
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 8px;
-        height: 50px;
-        width: 100%;
-        border: none;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    }
-    div.stButton > button:hover {
-        background-color: #00796B;
-    }
-    </style>
-"""
+def perform_summary(text, summary_type, summary_length, model_option):
+    system_prompt = f"{summary_type} 유형의 요약을 수행하세요. 요약 길이는 약 {summary_length}자로 제한하세요."
+    
+    response = client.chat.completions.create(
+        model=model_option,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": text}
+        ],
+        max_tokens=summary_length
+    )
+    return response.choices[0].message.content.strip()
 
 if uploaded_file:
     try:
@@ -196,89 +162,52 @@ if uploaded_file:
         
         # Transcription
         with st.spinner("음성 변환 중..."):
+            uploaded_file.seek(0)  # Reset file pointer
             transcription = client.audio.transcriptions.create(
                 model="whisper-1",
                 file=uploaded_file,
                 response_format="text"
             )
-            transcribed_text = transcription.strip()
+            st.session_state['transcribed_text'] = transcription.strip()
         
         # Display transcribed text
         st.markdown("<h3 style='text-align: left; font-size: 24px; font-weight: bold;'>텍스트 원문</h3>", unsafe_allow_html=True)
-        st.text_area("", value=transcribed_text, height=200)
+        st.text_area("", value=st.session_state['transcribed_text'], height=200, key='original_text')
 
         # Keyword extraction
         st.markdown("### 키워드 추출")
-        keywords = extract_keywords(transcribed_text, st.session_state['settings']['model'])
+        keywords = extract_keywords(st.session_state['transcribed_text'], st.session_state['settings']['model'])
         st.write(keywords)
 
         # Topic classification
         st.markdown("### 주제 분류")
-        topic = classify_topics(transcribed_text, st.session_state['settings']['model'])
+        topic = classify_topics(st.session_state['transcribed_text'], st.session_state['settings']['model'])
         st.write(topic)
 
-        # Initialize session state for visibility toggles if not exists
-        if 'show_emotion_result' not in st.session_state:
-            st.session_state['show_emotion_result'] = False
-        if 'show_summary_result' not in st.session_state:
-            st.session_state['show_summary_result'] = False
-        if 'emotion_result' not in st.session_state:
-            st.session_state['emotion_result'] = None
-        if 'summary_result' not in st.session_state:
-            st.session_state['summary_result'] = None
-
-        # Emotion analysis button and result
-        st.markdown(emotion_button_style, unsafe_allow_html=True)
-        if st.button("감정 분석 실행"):
-            with st.spinner("감정 분석 중..."):
-                try:
-                    text_response = client.chat.completions.create(
-                        model=st.session_state['settings']['model'],
-                        messages=[
-                            {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
-                            {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
-                        ],
-                        max_tokens=100,
-                        temperature=0.5
+        # Emotion Analysis and Summary Buttons
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("감정 분석 실행"):
+                with st.spinner("감정 분석 중..."):
+                    emotion_analysis = perform_emotion_analysis(
+                        st.session_state['transcribed_text'], 
+                        st.session_state['settings']['model']
                     )
-                    st.session_state['emotion_result'] = text_response.choices[0].message.content.strip()
-                    st.session_state['show_emotion_result'] = True
-                except Exception as e:
-                    st.error(f"감정 분석 실패: {str(e)}")
-
-        # Show/hide emotion analysis result
-        if st.session_state['show_emotion_result'] and st.session_state['emotion_result']:
-            with st.expander("감정 분석 결과", expanded=True):
-                st.markdown(f"<div style='padding:10px; background:#E8F5E9; border-radius:5px;'>{st.session_state['emotion_result']}</div>", unsafe_allow_html=True)
-
-        # Summary button and result
-        st.markdown(summary_button_style, unsafe_allow_html=True)
-        if st.button("요약 시작"):
-            with st.spinner("요약 중..."):
-                try:
-                    response = client.chat.completions.create(
-                        model=st.session_state['settings']['model'],
-                        messages=[
-                            {"role": "system", "content": f"당신은 {st.session_state['settings']['summary_type']} 전문가입니다."},
-                            {"role": "user", "content": f"""
-                                다음 내용을 {st.session_state['settings']['summary_type']} 형식으로 요약해주세요:
-                                {transcribed_text}
-                                요약 내용의 길이는 반드시 {st.session_state['settings']['summary_length']}에서 해결하세요.
-                                대답은 반드시 요약 형식으로 답변.
-                            """}
-                        ],
-                        max_tokens=st.session_state['settings']['summary_length'],
-                        temperature=0.7
+                    st.markdown("### 감정 분석 결과")
+                    st.write(emotion_analysis)
+        
+        with col2:
+            if st.button("요약 시작"):
+                with st.spinner("요약 생성 중..."):
+                    summary = perform_summary(
+                        st.session_state['transcribed_text'], 
+                        st.session_state['settings']['summary_type'],
+                        st.session_state['settings']['summary_length'],
+                        st.session_state['settings']['model']
                     )
-                    st.session_state['summary_result'] = response.choices[0].message.content.strip()
-                    st.session_state['show_summary_result'] = True
-                except Exception as e:
-                    st.error(f"요약 실패: {str(e)}")
-
-        # Show/hide summary result
-        if st.session_state['show_summary_result'] and st.session_state['summary_result']:
-            with st.expander("요약 결과", expanded=True):
-                st.markdown(f"<div style='padding:10px; background:#E8F5E9; border-radius:5px;'>{st.session_state['summary_result']}</div>", unsafe_allow_html=True)
+                    st.markdown("### 요약 결과")
+                    st.write(summary)
 
     except Exception as e:
         st.error(f"파일 처리 실패: {str(e)}")
