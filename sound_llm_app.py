@@ -95,7 +95,7 @@ def analyze_emotion_over_time(text, model_option):
             response = client.chat.completions.create(
                 model=model_option,
                 messages=[
-                    {"role": "system", "content": "텍스트의 감정을 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
+                    {"role": "system", "content": "전화를 받은 사람의 텍스트의 감정만 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
                     {"role": "user", "content": chunk}
                 ],
                 max_tokens=100
@@ -236,7 +236,7 @@ if uploaded_file:
                         model=st.session_state['settings']['model'],
                         messages=[
                             {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
-                            {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
+                            {"role": "user", "content": f"다음 텍스트에서 전화를 받은 사람의 감정만 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
                         ],
                         max_tokens=100,
                         temperature=0.5
