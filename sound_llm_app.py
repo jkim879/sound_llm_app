@@ -13,7 +13,7 @@ plt.rc('font', family='MalgunGothic')  # For Windows
 
 # Page configuration
 st.set_page_config(
-    page_title="GPT 음성 요약 및 감정 분석 서비스",
+    page_title="음성 내용 요약 서비스",
     layout="wide"
 )
 
@@ -348,4 +348,4 @@ if uploaded_file:
 
 # Footer
 st.markdown("---")
-st.markdown("<p style='text-align: center;'>문의: kjs_1000@ecredible.co.kr</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>문의: kjs_1000@naver.com </p>", unsafe_allow_html=True)
