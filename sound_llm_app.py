@@ -248,8 +248,8 @@ if uploaded_file:
 
         # Show/hide emotion analysis result
         if st.session_state['show_emotion_result'] and st.session_state['emotion_result']:
-            with st.expander("감정 분석 결과 (클릭하여 접기)", expanded=True):
-                st.markdown(f"<div style='padding:10px; background:#E3F2FD; border-radius:5px;'>{st.session_state['emotion_result']}</div>", unsafe_allow_html=True)
+            with st.expander("감정 분석 결과", expanded=True):
+                st.markdown(f"<div style='padding:10px; background:#E8F5E9; border-radius:5px;'>{st.session_state['emotion_result']}</div>", unsafe_allow_html=True)
 
         # Summary button and result
         st.markdown(summary_button_style, unsafe_allow_html=True)
@@ -277,7 +277,7 @@ if uploaded_file:
 
         # Show/hide summary result
         if st.session_state['show_summary_result'] and st.session_state['summary_result']:
-            with st.expander("요약 결과 (클릭하여 접기)", expanded=True):
+            with st.expander("요약 결과", expanded=True):
                 st.markdown(f"<div style='padding:10px; background:#E8F5E9; border-radius:5px;'>{st.session_state['summary_result']}</div>", unsafe_allow_html=True)
 
     except Exception as e:
