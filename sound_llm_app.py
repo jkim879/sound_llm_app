@@ -236,7 +236,6 @@ if uploaded_file:
                         model=st.session_state['settings']['model'],
                         messages=[
                             {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
-                            {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}"}
                             {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
                         ],
                         max_tokens=100,
