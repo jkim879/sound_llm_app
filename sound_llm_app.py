@@ -259,8 +259,9 @@ if uploaded_file:
                     response = client.chat.completions.create(
                         model=st.session_state['settings']['model'],
                         messages=[
-                            {"role": "system", "content": f"기업신용평가회사 '이크레더블'이 고객에게 전화를 건 대화 내용입니다. 당신은 {st.session_state['settings']['summary_type']} 전문가입니다."},
+                            {"role": "system", "content": f"당신은 {st.session_state['settings']['summary_type']} 전문가입니다."},
                             {"role": "user", "content": f"""
+                                기업신용평가회사 '이크레더블'이 고객에게 전화를 건 대화 내용입니다. 
                                 다음 내용을 {st.session_state['settings']['summary_type']} 형식으로 요약해주세요:
                                 {transcribed_text}
                                 요약 내용의 길이는 반드시 {st.session_state['settings']['summary_length']}에서 해결하세요.
