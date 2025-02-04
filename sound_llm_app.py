@@ -25,34 +25,38 @@ if not client.api_key:
     st.error("API 키가 설정되지 않았습니다")
     st.stop()
 
+# Initialize session state for settings if not exists
+if 'settings' not in st.session_state:
+    st.session_state['settings'] = {
+        'model': 'gpt-4o-mini',
+        'summary_type': '회의록',
+        'summary_length': 300
+    }
+
 # Sidebar configuration
 with st.sidebar:
     st.markdown("### 설정")
-    model_option = st.selectbox(
+    temp_model = st.selectbox(
         '모델 선택',
         ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo-0125'],
-        key='model_select'
+        key='temp_model',
+        index=['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo-0125'].index(st.session_state['settings']['model'])
     )
-    summary_type = st.radio(
+    temp_summary_type = st.radio(
         '요약 유형',
         ['일반 요약', '회의록', '인터뷰 분석', '강의 노트'],
-        index=1
+        index=['일반 요약', '회의록', '인터뷰 분석', '강의 노트'].index(st.session_state['settings']['summary_type'])
     )
-    summary_length = st.slider(
+    temp_summary_length = st.slider(
         '요약 길이 조정',
-        min_value=10, max_value=500, step=10, value=300
+        min_value=10, max_value=500, step=10,
+        value=st.session_state['settings']['summary_length']
     )
-    
-    # Initialize session state if not exists
-    if 'saved_model' not in st.session_state:
-        st.session_state['saved_model'] = model_option
-        st.session_state['saved_summary_type'] = summary_type
-        st.session_state['saved_summary_length'] = summary_length
     
     if st.button("설정 저장"):
-        st.session_state['saved_model'] = model_option
-        st.session_state['saved_summary_type'] = summary_type
-        st.session_state['saved_summary_length'] = summary_length
+        st.session_state['settings']['model'] = temp_model
+        st.session_state['settings']['summary_type'] = temp_summary_type
+        st.session_state['settings']['summary_length'] = temp_summary_length
         st.success("설정이 저장되었습니다.")
 
     st.markdown("---")
@@ -82,31 +86,6 @@ def extract_keywords(text, model_option):
     )
     return response.choices[0].message.content.strip()
 
-def analyze_emotion_over_time(text, model_option):
-    chunks = text.split(". ")
-    emotions = []
-    scores = []
-    for chunk in chunks:
-        if chunk.strip():
-            response = client.chat.completions.create(
-                model=model_option,
-                messages=[
-                    {"role": "system", "content": "텍스트의 감정을 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
-                    {"role": "user", "content": chunk}
-                ],
-                max_tokens=100
-            )
-            result = response.choices[0].message.content.strip().split(';')
-            if len(result) == 2:
-                emotions.append(result[0])
-                # 문자열에서 숫자만 추출하여 float로 변환
-                score = float(''.join(filter(lambda x: x.isdigit() or x in ['-', '.'], result[1])))
-                scores.append(max(min(score, 1.0), -1.0))  # 값을 -1과 1 사이로 제한
-            else:
-                emotions.append("중립")
-                scores.append(0.0)
-    return emotions, scores
-
 def classify_topics(text, model_option):
     response = client.chat.completions.create(
         model=model_option,
@@ -117,43 +96,6 @@ def classify_topics(text, model_option):
         max_tokens=100
     )
     return response.choices[0].message.content.strip()
-
-# Custom button styles
-emotion_button_style = """
-    <style>
-    div.stButton > button:first-child {
-        background-color: #2196F3;
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 8px;
-        height: 50px;
-        width: 100%;
-    }
-    div.stButton > button:hover {
-        background-color: #1976D2;
-    }
-    </style>
-"""
-
-summary_button_style = """
-    <style>
-    div.stButton > button:last-child {
-        background-color: #26A69A;
-        color: white;
-        font-size: 18px;
-        font-weight: bold;
-        border-radius: 8px;
-        height: 50px;
-        width: 100%;
-        border: none;
-        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-    }
-    div.stButton > button:hover {
-        background-color: #00796B;
-    }
-    </style>
-"""
 
 if uploaded_file:
     try:
@@ -206,139 +148,13 @@ if uploaded_file:
 
         # Keyword extraction
         st.markdown("### 키워드 추출")
-        keywords = extract_keywords(transcribed_text, model_option)
+        keywords = extract_keywords(transcribed_text, st.session_state['settings']['model'])
         st.write(keywords)
 
         # Topic classification
         st.markdown("### 주제 분류")
-        topic = classify_topics(transcribed_text, model_option)
+        topic = classify_topics(transcribed_text, st.session_state['settings']['model'])
         st.write(topic)
-
-        # Emotion analysis button
-        st.markdown(emotion_button_style, unsafe_allow_html=True)
-        emotion_analysis_container = st.container()
-        if st.button("감정 분석 실행"):
-            emotion_analysis_container.empty()
-            with emotion_analysis_container:
-                with st.spinner("감정 분석 중..."):
-                    try:
-                        # Text emotion analysis
-                        text_response = client.chat.completions.create(
-                            model=model_option,
-                            messages=[
-                                {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
-                                {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}"}
-                            ],
-                            max_tokens=100,
-                            temperature=0.5
-                        )
-                        text_emotion = text_response.choices[0].message.content.strip()
-                        st.success(f"텍스트 감정 분석 결과: {text_emotion}")
-
-                        # Emotion over time analysis in a new container
-                        emotion_container = st.container()
-                        # with emotion_container:
-                        #     st.markdown("### 시간에 따른 감정 변화")
-                        #     emotions, scores = analyze_emotion_over_time(transcribed_text, model_option)
-                            
-                        #     # 감정 분석 설명 추가
-                        #     st.markdown("""
-                        #     #### 감정 분석 해석 방법
-                            
-                        #     **1. 그래프 구성**
-                        #     - 상단: 문장별 감정 상태를 텍스트로 표시 (긍정/중립/부정)
-                        #     - 하단: 시간 흐름에 따른 감정 강도를 수치화하여 표시
-                            
-                        #     **2. 감정 점수 해석**
-                        #     - 매우 긍정적 (0.7 ~ 1.0): 강한 기쁨, 열정, 만족감
-                        #     - 긍정적 (0.3 ~ 0.7): 일반적인 기쁨, 호의적 감정
-                        #     - 중립적 (-0.3 ~ 0.3): 객관적, 중립적 감정
-                        #     - 부정적 (-0.7 ~ -0.3): 불만족, 걱정, 약한 부정
-                        #     - 매우 부정적 (-1.0 ~ -0.7): 강한 분노, 실망, 슬픔
-                            
-                        #     **3. 그래프 패턴 분석**
-                        #     - 상승 추세: 감정이 점차 긍정적으로 변화
-                        #     - 하강 추세: 감정이 점차 부정적으로 변화
-                        #     - 급격한 변화: 특정 시점에서 감정 변화가 큼
-                        #     - 안정적 패턴: 일정한 감정 상태 유지
-                            
-                        #     **4. 중립 영역 (회색 영역)**
-                        #     - 감정 강도가 약하거나 중립적인 구간
-                        #     - 일반적인 대화나 객관적 서술에서 자주 나타남
-                        #     """)
-                            
-                            
-                        #     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), height_ratios=[1, 2])
-                            
-                            
-                        #     fig.suptitle("감정 분석 결과", fontsize=16)
-                            
-                        #     # 감정 텍스트 표시
-                        #     ax1.set_xticks([])
-                        #     ax1.set_yticks([])
-                        #     ax1.axis('off')
-                        #     emotion_text = ' → '.join(emotions)
-                        #     ax1.text(0.5, 0.5, emotion_text, 
-                        #         ha='center', va='center', 
-                        #         wrap=True,
-                        #         fontsize=12)
-                            
-                        #     # 감정 점수 그래프
-                        #     ax2.plot(range(len(scores)), scores, 
-                        #         marker='o', 
-                        #         color='#4CAF50', 
-                        #         linewidth=2, 
-                        #         markersize=8)
-                        #     ax2.grid(True, linestyle='--', alpha=0.7)
-                        #     ax2.set_xlabel("문장 순서", fontsize=12)
-                        #     ax2.set_ylabel("감정 점수\n(-1: 부정, 1: 긍정)", fontsize=12)
-                        #     ax2.set_ylim(-1.1, 1.1)
-                            
-                        #     # 중립 영역 표시
-                        #     ax2.axhspan(-0.5, 0.5, color='gray', alpha=0.2, label='중립 영역')
-                        #     ax2.legend()
-                            
-                        #     plt.tight_layout()
-                        #     st.pyplot(fig)
-
-                        # # Combined emotion analysis
-                        # audio_emotion = "긍정적 (추정)"
-                        # combined_emotion = f"음성: {audio_emotion}, 텍스트: {text_emotion}"
-                        # st.markdown(f"<div style='padding:10px; background:#E3F2FD; border-radius:5px;'>종합 감정 분석: {combined_emotion}</div>", unsafe_allow_html=True)
-
-                    except Exception as e:
-                        st.error(f"감정 분석 실패: {str(e)}")
-
-        # Summary button
-        st.markdown(summary_button_style, unsafe_allow_html=True)
-        summary_container = st.container()
-        if st.button("요약 시작"):
-            summary_container.empty()
-            with summary_container:
-                with st.spinner("요약 중..."):
-                    try:
-                        model_name = st.session_state['saved_model']
-                        summary_type = st.session_state.get('saved_summary_type', '회의록')
-                        summary_length = st.session_state.get('saved_summary_length', 300)
-                        
-                        response = client.chat.completions.create(
-                            model=model_name,
-                            messages=[
-                                {"role": "system", "content": f"당신은 {summary_type} 전문가입니다."},
-                                {"role": "user", "content": f"""
-                                    다음 내용을 {summary_type} 형식으로 요약해주세요:
-                                    {transcribed_text}
-                                    요약 내용의 길이는 반드시 {summary_length}에서 해결하세요.
-                                    대답은 반드시 존댓말로 해주세요.
-                                """}
-                            ],
-                            max_tokens=summary_length,
-                            temperature=0.7
-                        )
-                        summary = response.choices[0].message.content.strip()
-                        st.markdown(f"<div style='padding:10px; background:#E8F5E9; border-radius:5px;'>{summary}</div>", unsafe_allow_html=True)
-                    except Exception as e:
-                        st.error(f"요약 실패: {str(e)}")
 
     except Exception as e:
         st.error(f"파일 처리 실패: {str(e)}")
