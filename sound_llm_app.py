@@ -79,7 +79,7 @@ def extract_keywords(text, model_option):
     response = client.chat.completions.create(
         model=model_option,
         messages=[
-            {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 전체 대화를 고려하여 이 대화의 가장 핵심 키워드 추출. 답변은 부가 설명 없이 핵심 키워드만 추출."},
+            {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 전체 대화를 고려하여 문맥에 맞게 이 대화의 가장 핵심 키워드 추출. 답변은 부가 설명 없이 핵심 키워드만 추출."},
             {"role": "user", "content": text}
         ],
         max_tokens=1000
@@ -95,7 +95,7 @@ def analyze_emotion_over_time(text, model_option):
             response = client.chat.completions.create(
                 model=model_option,
                 messages=[
-                    {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 전체상황을 고려하여 고객의 감정만 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
+                    {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 전체상황을 고려하여 문맥에 맞게 고객의 감정만 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
                     {"role": "user", "content": chunk}
                 ],
                 max_tokens=1000
@@ -114,7 +114,7 @@ def classify_topics(text, model_option):
     response = client.chat.completions.create(
         model=model_option,
         messages=[
-            {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 텍스트 주제 분류. 답변은 부가설명 없이 주제만 추출."},
+            {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 문맥에 맞게 텍스트 주제 분류. 답변은 부가설명 없이 주제만 추출."},
             {"role": "user", "content": text}
         ],
         max_tokens=1000
@@ -236,7 +236,7 @@ if uploaded_file:
                         model=st.session_state['settings']['model'],
                         messages=[
                             {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
-                            {"role": "user", "content": f"다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 다음 텍스트에서 고객의 감정만 전체 상황을 고려하여 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
+                            {"role": "user", "content": f"다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 다음 텍스트에서 전체 상황을 고려하여 문맥에 맞게 고객의 감정만 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
                         ],
                         max_tokens=1000,
                         temperature=0.5
@@ -262,7 +262,7 @@ if uploaded_file:
                             {"role": "system", "content": f"당신은 {st.session_state['settings']['summary_type']} 전문가입니다."},
                             {"role": "user", "content": f"""
                                 다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다.
-                                다음 내용을 {st.session_state['settings']['summary_type']} 형식으로 요약해주세요:
+                                다음 내용을 {st.session_state['settings']['summary_type']} 형식으로 문맥에 맞게 요약해주세요:
                                 {transcribed_text}
                                 요약 내용의 길이는 반드시 {st.session_state['settings']['summary_length']}에서 해결하세요.
                                 대답은 반드시 요약 형식으로 답변.
