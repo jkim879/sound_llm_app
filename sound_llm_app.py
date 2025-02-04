@@ -266,6 +266,7 @@ if uploaded_file:
                                 {transcribed_text}
                                 요약 내용의 길이는 반드시 {st.session_state['settings']['summary_length']}에서 해결하세요.
                                 대답은 반드시 요약 형식으로 답변.
+                                전체적인 내용을 한 번 더 파악해서 오타나 오탈자 수정.
                             """}
                         ],
                         max_tokens=st.session_state['settings']['summary_length'],
