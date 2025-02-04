@@ -237,74 +237,74 @@ if uploaded_file:
 
                         # Emotion over time analysis in a new container
                         emotion_container = st.container()
-                        with emotion_container:
-                            st.markdown("### 시간에 따른 감정 변화")
-                            emotions, scores = analyze_emotion_over_time(transcribed_text, model_option)
+                        # with emotion_container:
+                        #     st.markdown("### 시간에 따른 감정 변화")
+                        #     emotions, scores = analyze_emotion_over_time(transcribed_text, model_option)
                             
-                            # 감정 분석 설명 추가
-                            st.markdown("""
-                            #### 감정 분석 해석 방법
+                        #     # 감정 분석 설명 추가
+                        #     st.markdown("""
+                        #     #### 감정 분석 해석 방법
                             
-                            **1. 그래프 구성**
-                            - 상단: 문장별 감정 상태를 텍스트로 표시 (긍정/중립/부정)
-                            - 하단: 시간 흐름에 따른 감정 강도를 수치화하여 표시
+                        #     **1. 그래프 구성**
+                        #     - 상단: 문장별 감정 상태를 텍스트로 표시 (긍정/중립/부정)
+                        #     - 하단: 시간 흐름에 따른 감정 강도를 수치화하여 표시
                             
-                            **2. 감정 점수 해석**
-                            - 매우 긍정적 (0.7 ~ 1.0): 강한 기쁨, 열정, 만족감
-                            - 긍정적 (0.3 ~ 0.7): 일반적인 기쁨, 호의적 감정
-                            - 중립적 (-0.3 ~ 0.3): 객관적, 중립적 감정
-                            - 부정적 (-0.7 ~ -0.3): 불만족, 걱정, 약한 부정
-                            - 매우 부정적 (-1.0 ~ -0.7): 강한 분노, 실망, 슬픔
+                        #     **2. 감정 점수 해석**
+                        #     - 매우 긍정적 (0.7 ~ 1.0): 강한 기쁨, 열정, 만족감
+                        #     - 긍정적 (0.3 ~ 0.7): 일반적인 기쁨, 호의적 감정
+                        #     - 중립적 (-0.3 ~ 0.3): 객관적, 중립적 감정
+                        #     - 부정적 (-0.7 ~ -0.3): 불만족, 걱정, 약한 부정
+                        #     - 매우 부정적 (-1.0 ~ -0.7): 강한 분노, 실망, 슬픔
                             
-                            **3. 그래프 패턴 분석**
-                            - 상승 추세: 감정이 점차 긍정적으로 변화
-                            - 하강 추세: 감정이 점차 부정적으로 변화
-                            - 급격한 변화: 특정 시점에서 감정 변화가 큼
-                            - 안정적 패턴: 일정한 감정 상태 유지
+                        #     **3. 그래프 패턴 분석**
+                        #     - 상승 추세: 감정이 점차 긍정적으로 변화
+                        #     - 하강 추세: 감정이 점차 부정적으로 변화
+                        #     - 급격한 변화: 특정 시점에서 감정 변화가 큼
+                        #     - 안정적 패턴: 일정한 감정 상태 유지
                             
-                            **4. 중립 영역 (회색 영역)**
-                            - 감정 강도가 약하거나 중립적인 구간
-                            - 일반적인 대화나 객관적 서술에서 자주 나타남
-                            """)
-                            
-                            
-                            fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), height_ratios=[1, 2])
+                        #     **4. 중립 영역 (회색 영역)**
+                        #     - 감정 강도가 약하거나 중립적인 구간
+                        #     - 일반적인 대화나 객관적 서술에서 자주 나타남
+                        #     """)
                             
                             
-                            fig.suptitle("감정 분석 결과", fontsize=16)
+                        #     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), height_ratios=[1, 2])
                             
-                            # 감정 텍스트 표시
-                            ax1.set_xticks([])
-                            ax1.set_yticks([])
-                            ax1.axis('off')
-                            emotion_text = ' → '.join(emotions)
-                            ax1.text(0.5, 0.5, emotion_text, 
-                                ha='center', va='center', 
-                                wrap=True,
-                                fontsize=12)
                             
-                            # 감정 점수 그래프
-                            ax2.plot(range(len(scores)), scores, 
-                                marker='o', 
-                                color='#4CAF50', 
-                                linewidth=2, 
-                                markersize=8)
-                            ax2.grid(True, linestyle='--', alpha=0.7)
-                            ax2.set_xlabel("문장 순서", fontsize=12)
-                            ax2.set_ylabel("감정 점수\n(-1: 부정, 1: 긍정)", fontsize=12)
-                            ax2.set_ylim(-1.1, 1.1)
+                        #     fig.suptitle("감정 분석 결과", fontsize=16)
                             
-                            # 중립 영역 표시
-                            ax2.axhspan(-0.5, 0.5, color='gray', alpha=0.2, label='중립 영역')
-                            ax2.legend()
+                        #     # 감정 텍스트 표시
+                        #     ax1.set_xticks([])
+                        #     ax1.set_yticks([])
+                        #     ax1.axis('off')
+                        #     emotion_text = ' → '.join(emotions)
+                        #     ax1.text(0.5, 0.5, emotion_text, 
+                        #         ha='center', va='center', 
+                        #         wrap=True,
+                        #         fontsize=12)
                             
-                            plt.tight_layout()
-                            st.pyplot(fig)
+                        #     # 감정 점수 그래프
+                        #     ax2.plot(range(len(scores)), scores, 
+                        #         marker='o', 
+                        #         color='#4CAF50', 
+                        #         linewidth=2, 
+                        #         markersize=8)
+                        #     ax2.grid(True, linestyle='--', alpha=0.7)
+                        #     ax2.set_xlabel("문장 순서", fontsize=12)
+                        #     ax2.set_ylabel("감정 점수\n(-1: 부정, 1: 긍정)", fontsize=12)
+                        #     ax2.set_ylim(-1.1, 1.1)
+                            
+                        #     # 중립 영역 표시
+                        #     ax2.axhspan(-0.5, 0.5, color='gray', alpha=0.2, label='중립 영역')
+                        #     ax2.legend()
+                            
+                        #     plt.tight_layout()
+                        #     st.pyplot(fig)
 
-                        # Combined emotion analysis
-                        audio_emotion = "긍정적 (추정)"
-                        combined_emotion = f"음성: {audio_emotion}, 텍스트: {text_emotion}"
-                        st.markdown(f"<div style='padding:10px; background:#E3F2FD; border-radius:5px;'>종합 감정 분석: {combined_emotion}</div>", unsafe_allow_html=True)
+                        # # Combined emotion analysis
+                        # audio_emotion = "긍정적 (추정)"
+                        # combined_emotion = f"음성: {audio_emotion}, 텍스트: {text_emotion}"
+                        # st.markdown(f"<div style='padding:10px; background:#E3F2FD; border-radius:5px;'>종합 감정 분석: {combined_emotion}</div>", unsafe_allow_html=True)
 
                     except Exception as e:
                         st.error(f"감정 분석 실패: {str(e)}")
