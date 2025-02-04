@@ -86,6 +86,30 @@ def extract_keywords(text, model_option):
     )
     return response.choices[0].message.content.strip()
 
+def analyze_emotion_over_time(text, model_option):
+    chunks = text.split(". ")
+    emotions = []
+    scores = []
+    for chunk in chunks:
+        if chunk.strip():
+            response = client.chat.completions.create(
+                model=model_option,
+                messages=[
+                    {"role": "system", "content": "텍스트의 감정을 분석하여 '긍정', '중립', '부정' 중 하나로 분류하고, -1(매우 부정)에서 1(매우 긍정) 사이의 점수를 함께 제시해주세요. 형식: [감정];[점수]"},
+                    {"role": "user", "content": chunk}
+                ],
+                max_tokens=100
+            )
+            result = response.choices[0].message.content.strip().split(';')
+            if len(result) == 2:
+                emotions.append(result[0])
+                score = float(''.join(filter(lambda x: x.isdigit() or x in ['-', '.'], result[1])))
+                scores.append(max(min(score, 1.0), -1.0))
+            else:
+                emotions.append("중립")
+                scores.append(0.0)
+    return emotions, scores
+
 def classify_topics(text, model_option):
     response = client.chat.completions.create(
         model=model_option,
@@ -96,6 +120,43 @@ def classify_topics(text, model_option):
         max_tokens=100
     )
     return response.choices[0].message.content.strip()
+
+# Custom button styles
+emotion_button_style = """
+    <style>
+    div.stButton > button:first-child {
+        background-color: #2196F3;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        height: 50px;
+        width: 100%;
+    }
+    div.stButton > button:hover {
+        background-color: #1976D2;
+    }
+    </style>
+"""
+
+summary_button_style = """
+    <style>
+    div.stButton > button:last-child {
+        background-color: #26A69A;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        height: 50px;
+        width: 100%;
+        border: none;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    div.stButton > button:hover {
+        background-color: #00796B;
+    }
+    </style>
+"""
 
 if uploaded_file:
     try:
@@ -155,6 +216,57 @@ if uploaded_file:
         st.markdown("### 주제 분류")
         topic = classify_topics(transcribed_text, st.session_state['settings']['model'])
         st.write(topic)
+
+        # Emotion analysis button
+        st.markdown(emotion_button_style, unsafe_allow_html=True)
+        emotion_analysis_container = st.container()
+        if st.button("감정 분석 실행"):
+            emotion_analysis_container.empty()
+            with emotion_analysis_container:
+                with st.spinner("감정 분석 중..."):
+                    try:
+                        # Text emotion analysis
+                        text_response = client.chat.completions.create(
+                            model=st.session_state['settings']['model'],
+                            messages=[
+                                {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
+                                {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}"}
+                            ],
+                            max_tokens=100,
+                            temperature=0.5
+                        )
+                        text_emotion = text_response.choices[0].message.content.strip()
+                        st.success(f"텍스트 감정 분석 결과: {text_emotion}")
+
+                    except Exception as e:
+                        st.error(f"감정 분석 실패: {str(e)}")
+
+        # Summary button
+        st.markdown(summary_button_style, unsafe_allow_html=True)
+        summary_container = st.container()
+        if st.button("요약 시작"):
+            summary_container.empty()
+            with summary_container:
+                with st.spinner("요약 중..."):
+                    try:
+                        response = client.chat.completions.create(
+                            model=st.session_state['settings']['model'],
+                            messages=[
+                                {"role": "system", "content": f"당신은 {st.session_state['settings']['summary_type']} 전문가입니다."},
+                                {"role": "user", "content": f"""
+                                    다음 내용을 {st.session_state['settings']['summary_type']} 형식으로 요약해주세요:
+                                    {transcribed_text}
+                                    요약 내용의 길이는 반드시 {st.session_state['settings']['summary_length']}에서 해결하세요.
+                                    대답은 반드시 존댓말로 해주세요.
+                                """}
+                            ],
+                            max_tokens=st.session_state['settings']['summary_length'],
+                            temperature=0.7
+                        )
+                        summary = response.choices[0].message.content.strip()
+                        st.markdown(f"<div style='padding:10px; background:#E8F5E9; border-radius:5px;'>{summary}</div>", unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"요약 실패: {str(e)}")
 
     except Exception as e:
         st.error(f"파일 처리 실패: {str(e)}")
