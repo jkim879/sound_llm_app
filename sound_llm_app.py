@@ -9,7 +9,7 @@ import matplotlib.font_manager as fm
 from audio_recorder_streamlit import audio_recorder
 
 # Font settings for matplotlib
-plt.rc('font', family='MalgunGothic')  # For Windows
+plt.rc('font', family='NaumGothic')  # For Windows
 
 # Page configuration
 st.set_page_config(
