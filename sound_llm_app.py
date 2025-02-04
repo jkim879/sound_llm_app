@@ -8,8 +8,8 @@ from openai import OpenAI
 import matplotlib.font_manager as fm
 from audio_recorder_streamlit import audio_recorder
 
-# Font settings for matplotlib
-plt.rc('font', family='NaumGothic')  # For Windows
+plt.rcParams['font.family'] ='Malgun Gothic'
+plt.rcParams['axes.unicode_minus'] =False
 
 # Page configuration
 st.set_page_config(
