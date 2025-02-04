@@ -30,7 +30,7 @@ if 'settings' not in st.session_state:
     st.session_state['settings'] = {
         'model': 'gpt-4o-mini',
         'summary_type': '일반 요약',
-        'summary_length': 300
+        'summary_length': 1000
     }
 
 # Sidebar configuration
