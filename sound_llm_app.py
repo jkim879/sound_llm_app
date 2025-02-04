@@ -13,7 +13,7 @@ plt.rc('font', family='MalgunGothic')  # For Windows
 
 # Page configuration
 st.set_page_config(
-    page_title="음성 내용 요약 서비스",
+    page_title="음성 요약 분석 서비스",
     layout="wide"
 )
 
@@ -60,7 +60,7 @@ with st.sidebar:
     st.info("음성 파일을 업로드하고 요약 및 감정 분석을 시작하세요.")
 
 # Main title
-st.markdown("<h1 style='text-align: center; color: #4CAF50;'>GPT 음성 요약 및 감정 분석 서비스</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #4CAF50;'>음성 요약 분석 서비스</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center;'>음성 파일을 텍스트로 변환하고 요약 및 감정을 분석합니다.</p>", unsafe_allow_html=True)
 
 # File upload section
