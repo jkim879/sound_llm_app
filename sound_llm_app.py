@@ -236,7 +236,7 @@ if uploaded_file:
                         model=st.session_state['settings']['model'],
                         messages=[
                             {"role": "system", "content": "당신은 텍스트 감정 분석 전문가입니다."},
-                            {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}"}
+                            {"role": "user", "content": f"다음 텍스트의 감정을 분석해주세요: {transcribed_text}. 대답은 반드시 요약 형식으로 답변."}
                         ],
                         max_tokens=100,
                         temperature=0.5
@@ -264,7 +264,7 @@ if uploaded_file:
                                 다음 내용을 {st.session_state['settings']['summary_type']} 형식으로 요약해주세요:
                                 {transcribed_text}
                                 요약 내용의 길이는 반드시 {st.session_state['settings']['summary_length']}에서 해결하세요.
-                                대답은 반드시 존댓말로 해주세요.
+                                대답은 반드시 요약 형식으로 답변.
                             """}
                         ],
                         max_tokens=st.session_state['settings']['summary_length'],
