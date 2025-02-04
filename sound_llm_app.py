@@ -270,9 +270,6 @@ if uploaded_file:
                             
                             fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), height_ratios=[1, 2])
                             
-                            # 한글 폰트 설정
-                            plt.rcParams['font.family'] = 'Malgun Gothic'
-                            plt.rcParams['axes.unicode_minus'] = False
                             
                             fig.suptitle("감정 분석 결과", fontsize=16)
                             
