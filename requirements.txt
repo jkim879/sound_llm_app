@@ -3,3 +3,4 @@ openai==1.59.7
 audio_recorder_streamlit==0.0.10
 python-dotenv==1.0.1
 whisper==1.1.10
+openai-whisper==20240930
