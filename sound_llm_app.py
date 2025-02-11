@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import matplotlib.font_manager as fm
 from audio_recorder_streamlit import audio_recorder
-import whisper
 
 plt.rcParams['font.family'] ='Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] =False
