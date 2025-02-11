@@ -197,7 +197,7 @@ if uploaded_file:
         # Transcription
         with st.spinner("음성 변환 중..."):
             transcription = client.audio.transcriptions.create(
-                model="openai/whisper-large-v3-turbo",
+                model="large-v2",
                 file=uploaded_file,
                 response_format="text"
             )
