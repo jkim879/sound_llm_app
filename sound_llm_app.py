@@ -79,7 +79,7 @@ def extract_keywords(text, model_option):
     response = client.chat.completions.create(
         model=model_option,
         messages=[
-            {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 전체 대화를 고려하여 문맥에 맞게 이 대화의 가장 핵심 키워드 추출. 답변은 부가 설명 없이 핵심 키워드만 추출."},
+            {"role": "system", "content": "다음 내용은 기업신용평가회사 '이크레더블'이 고객에게 전화를 먼저 걸고 대화를 진행한 상황에 대한 내용입니다. 전체 대화를 고려하여 문맥에 맞게 이 대화의 가장 핵심 키워드를 태그해주세요. 답변은 부가 설명 없이 핵심 키워드만 추출."},
             {"role": "user", "content": text}
         ],
         max_tokens=1000
